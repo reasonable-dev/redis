@@ -79,6 +79,7 @@ module Internal = {
 
   [@bs.send] external set: (client, array(string)) => promise = "";
   [@bs.send] external get: (client, array(string)) => promise = "";
+  [@bs.send] external del: (client, array(string)) => promise = "";
 
   [@bs.send] external hincrby: (client, string, string, int) => promise = "";
   [@bs.send] external hscan: (client, string, cursor) => promise = "";
@@ -219,6 +220,12 @@ module BulkStringReply = {
   let decode = Json.Decode.(optional(string));
 };
 
+module IntegerReply = {
+  type t = int;
+
+  let decode = Json.Decode.int;
+};
+
 type t = Internal.client;
 
 // TODO: config options
@@ -256,6 +263,17 @@ let get = (~key, client) => {
   Internal.get(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(BulkStringReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let del = (~keys, client) => {
+  Internal.del(client, keys)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(IntegerReply.decode(json))
      )
   |> Repromise.Rejectable.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));

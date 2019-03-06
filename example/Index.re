@@ -1,7 +1,7 @@
 let client = Redis.make();
 
 client
-|> Redis.set(~key="what", ~value="the", ~existence=NX, ~expiration=EX(1))
+|> Redis.set(~key="foo", ~value="bar", ~existence=NX, ~expiration=EX(10))
 |> Redis.Promise.wait(res =>
      switch (res) {
      | Belt.Result.Ok(Redis.SimpleStringReply.Ok) => Js.log2("set", "Ok")
@@ -13,6 +13,23 @@ client
      }
    );
 
-client |> Redis.get(~key="what") |> Redis.Promise.wait(Js.log2("get"));
+client
+|> Redis.get(~key="foo")
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(Some(value)) => Js.log2("get", value)
+     | Belt.Result.Ok(None) => Js.log2("get", "No value")
+     | Belt.Result.Error(error) => Js.log2("get error", error)
+     }
+   );
+
+client
+|> Redis.del(~keys=[|"foo"|])
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("del", value)
+     | Belt.Result.Error(error) => Js.log2("del error", error)
+     }
+   );
 
 client |> Redis.quit;

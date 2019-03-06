@@ -75,6 +75,8 @@ module SimpleStringReply: {
 
 module BulkStringReply: {type t = option(string);};
 
+module IntegerReply: {type t = int;};
+
 type t;
 
 let make: unit => t;
@@ -92,4 +94,8 @@ let set:
   Promise.t(Belt.Result.t(SimpleStringReply.t, Error.t));
 
 let get:
-  (~key: string, t) => Promise.t(Belt.Result.t(option(string), Error.t));
+  (~key: string, t) => Promise.t(Belt.Result.t(BulkStringReply.t, Error.t));
+
+let del:
+  (~keys: array(string), t) =>
+  Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
