@@ -81,7 +81,7 @@ module Internal = {
   [@bs.send] external get: (client, array(string)) => promise = "";
   [@bs.send] external del: (client, array(string)) => promise = "";
 
-  [@bs.send] external hincrby: (client, string, string, int) => promise = "";
+  [@bs.send] external hincrby: (client, array(string)) => promise = "";
   [@bs.send] external hscan: (client, string, cursor) => promise = "";
   [@bs.send] external hmset: (client, string, Js.Json.t) => promise = "";
 
@@ -272,6 +272,18 @@ let get = (~key, client) => {
 
 let del = (~keys, client) => {
   Internal.del(client, keys)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(IntegerReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let hincrby = (~key, ~field, ~value, client) => {
+  let args = [|key, field, string_of_int(value)|];
+  Internal.hincrby(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )

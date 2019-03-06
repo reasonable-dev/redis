@@ -99,3 +99,7 @@ let get:
 let del:
   (~keys: array(string), t) =>
   Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
+
+let hincrby:
+  (~key: string, ~field: string, ~value: int, t) =>
+  Promise.t(Belt.Result.t(IntegerReply.t, Error.t));

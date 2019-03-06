@@ -32,4 +32,22 @@ client
      }
    );
 
+client
+|> Redis.hincrby(~key="foo", ~field="bar", ~value=1)
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("hincrby", value)
+     | Belt.Result.Error(error) => Js.log2("hincrby error", error)
+     }
+   );
+
+client
+|> Redis.del(~keys=[|"foo"|])
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("del", value)
+     | Belt.Result.Error(error) => Js.log2("del error", error)
+     }
+   );
+
 client |> Redis.quit;
