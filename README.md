@@ -1,2 +1,3 @@
-# bs-redis
-BuckleScript bindings for Redis.
+# redis
+
+BuckleScript bindings for Redis (specifically ioredis).

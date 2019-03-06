@@ -1,7 +1,7 @@
 {
   "name": "@reasonable-dev/redis",
   "version": "0.0.0",
-  "description": "BuckleScript bindings for Redis.",
+  "description": "BuckleScript bindings for Redis (specifically ioredis).",
   "main": "Redis.bs.js",
   "dependencies": {
     "@aantron/repromise": "^0.6.0",
