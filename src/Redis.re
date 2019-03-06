@@ -1,7 +1,3 @@
-type cursor;
-
-external cursor: int => cursor = "%identity";
-
 type existence =
   | XX
   | NX;
@@ -9,6 +5,17 @@ type existence =
 type expiration =
   | EX(int)
   | PX(int);
+
+module Cursor = {
+  type t =
+    | FirstCursor
+    | NextCursor(string)
+    | LastCursor;
+
+  let start = FirstCursor;
+
+  let isLast = cursor => cursor == LastCursor;
+};
 
 module Internal = {
   type client;
@@ -73,6 +80,27 @@ module Internal = {
     };
   };
 
+  let argsWithCursor = (value, args) =>
+    switch (value) {
+    | Cursor.FirstCursor => Belt.Array.concat(args, [|"0"|])
+    | Cursor.NextCursor(cursor) => Belt.Array.concat(args, [|cursor|])
+    // TODO: Verify that using the LastCursor again doesn't error in Redis
+    | Cursor.LastCursor => Belt.Array.concat(args, [|"0"|])
+    };
+
+  let argsWithMatch = (value, args) =>
+    switch (value) {
+    | Some(match) => Belt.Array.concat(args, [|"MATCH", match|])
+    | None => args
+    };
+
+  let argsWithCount = (value, args) =>
+    switch (value) {
+    | Some(count) =>
+      Belt.Array.concat(args, [|"COUNT", string_of_int(count)|])
+    | None => args
+    };
+
   [@bs.module] [@bs.new] external make: unit => client = "ioredis";
 
   [@bs.send] external quit: client => promise = "";
@@ -80,9 +108,11 @@ module Internal = {
   [@bs.send] external set: (client, array(string)) => promise = "";
   [@bs.send] external get: (client, array(string)) => promise = "";
   [@bs.send] external del: (client, array(string)) => promise = "";
+  [@bs.send] external exists: (client, array(string)) => promise = "";
+  [@bs.send] external scan: (client, array(string)) => promise = "";
 
   [@bs.send] external hincrby: (client, array(string)) => promise = "";
-  [@bs.send] external hscan: (client, string, cursor) => promise = "";
+  [@bs.send] external hscan: (client, string, int) => promise = "";
   [@bs.send] external hmset: (client, string, Js.Json.t) => promise = "";
 
   [@bs.send] external sadd: (client, string, string) => promise = "";
@@ -221,6 +251,39 @@ module IntegerReply = {
   let decode = Json.Decode.int;
 };
 
+module BooleanReply = {
+  // This is actually something I want that isn't provided by ioredis
+  type t = bool;
+
+  let decode = json =>
+    switch (Json.Decode.int(json)) {
+    | 1 => true
+    | 0 => false
+    | invalid =>
+      failwith(
+        "Invalid reply for BooleanReply. Got integer: "
+        ++ string_of_int(invalid),
+      )
+    };
+};
+
+module ScanReply = {
+  // This isn't a spec'd Reply but it is bolded in the SCAN docs
+  // TODO: should this be a tuple, record or variant?
+  type t('a) = (Cursor.t, 'a);
+
+  let decode = json => {
+    let (cursor, results) =
+      json |> Json.Decode.(pair(string, array(string)));
+
+    if (cursor === "0") {
+      (Cursor.LastCursor, results);
+    } else {
+      (Cursor.NextCursor(cursor), results);
+    };
+  };
+};
+
 type t = Internal.client;
 
 // TODO: config options
@@ -270,6 +333,36 @@ let del = (~keys, client) => {
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+// This doesn't allow multiple keys because I don't like that API
+let exists = (~key, client) => {
+  let args = [|key|];
+  Internal.exists(client, args)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(BooleanReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let scan = (~cursor, ~match=?, ~count=?, client) => {
+  let args =
+    [||]
+    |> Internal.argsWithCursor(cursor)
+    |> Internal.argsWithMatch(match)
+    |> Internal.argsWithCount(count);
+  Internal.scan(client, args)
+  |> Repromise.Rejectable.map(json => {
+       let result = ScanReply.decode(json);
+       Belt.Result.Ok(result);
+     })
   |> Repromise.Rejectable.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
