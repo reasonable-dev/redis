@@ -149,11 +149,6 @@ module Error = {
           stack: JsError.stackGet(error),
         })
       | Some("ReplyError") =>
-        // Js.log(JsError.messageGet(error));
-        // Js.log(JsError.commandGet(argsGet(error));
-        // Js.log(JsError.commandGet(error));
-        // Js.log(JsError.codeGet(error));
-
         ReplyError({
           message: JsError.messageGet(error),
           stack: JsError.stackGet(error),
