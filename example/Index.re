@@ -114,6 +114,15 @@ client
    );
 
 client
+|> Redis.scard(~key="foo")
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("scard", value)
+     | Belt.Result.Error(error) => Js.log2("scard error", error)
+     }
+   );
+
+client
 |> Redis.del(~keys=["foo"])
 |> Redis.Promise.wait(res =>
      switch (res) {

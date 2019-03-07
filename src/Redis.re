@@ -132,7 +132,7 @@ module Internal = {
   [@bs.send] external hscan: (client, array(string)) => promise = "";
 
   [@bs.send] external sadd: (client, array(string)) => promise = "";
-  [@bs.send] external scard: (client, string) => promise = "";
+  [@bs.send] external scard: (client, array(string)) => promise = "";
   [@bs.send] external sismember: (client, string, string) => promise = "";
 };
 
@@ -444,6 +444,19 @@ let sadd = (~key, ~values, client) => {
   let args = Belt.Array.concat([|key|], Belt.List.toArray(values));
 
   Internal.sadd(client, args)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(IntegerReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let scard = (~key, client) => {
+  let args = [|key|];
+
+  Internal.scard(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )

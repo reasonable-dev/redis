@@ -130,3 +130,6 @@ let hscan:
 let sadd:
   (~key: string, ~values: list(string), t) =>
   Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
+
+let scard:
+  (~key: string, t) => Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
