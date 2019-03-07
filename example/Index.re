@@ -123,6 +123,15 @@ client
    );
 
 client
+|> Redis.sismember(~key="foo", ~member="one")
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("sismember", value)
+     | Belt.Result.Error(error) => Js.log2("sismember error", error)
+     }
+   );
+
+client
 |> Redis.del(~keys=["foo"])
 |> Redis.Promise.wait(res =>
      switch (res) {

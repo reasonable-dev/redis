@@ -133,3 +133,7 @@ let sadd:
 
 let scard:
   (~key: string, t) => Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
+
+let sismember:
+  (~key: string, ~member: string, t) =>
+  Promise.t(Belt.Result.t(BooleanReply.t, Error.t));

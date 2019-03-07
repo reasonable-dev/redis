@@ -133,7 +133,7 @@ module Internal = {
 
   [@bs.send] external sadd: (client, array(string)) => promise = "";
   [@bs.send] external scard: (client, array(string)) => promise = "";
-  [@bs.send] external sismember: (client, string, string) => promise = "";
+  [@bs.send] external sismember: (client, array(string)) => promise = "";
 };
 
 module Error = {
@@ -459,6 +459,19 @@ let scard = (~key, client) => {
   Internal.scard(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let sismember = (~key, ~member, client) => {
+  let args = [|key, member|];
+
+  Internal.sismember(client, args)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(BooleanReply.decode(json))
      )
   |> Repromise.Rejectable.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
