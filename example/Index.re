@@ -75,12 +75,23 @@ client
 |> Redis.hmset(~key="foo", ~values=Js.Dict.fromList([("bar", "baz")]))
 |> Redis.Promise.wait(res =>
      switch (res) {
-     | Belt.Result.Ok(Redis.SimpleStringReply.Ok) => Js.log2("set", "Ok")
+     | Belt.Result.Ok(Redis.SimpleStringReply.Ok) => Js.log2("hmset", "Ok")
      | Belt.Result.Ok(Redis.SimpleStringReply.Empty) =>
-       Js.log2("set", "Empty")
+       Js.log2("hmset", "Empty")
      | Belt.Result.Ok(Redis.SimpleStringReply.Unknown(value)) =>
-       Js.log2("set", value)
-     | Belt.Result.Error(error) => Js.log2("set error", error)
+       Js.log2("hmset", value)
+     | Belt.Result.Error(error) => Js.log2("hmset error", error)
+     }
+   );
+
+client
+|> Redis.hscan(~key="foo", ~cursor=Redis.Cursor.start)
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok((cursor, results)) when Redis.Cursor.isLast(cursor) =>
+       Js.log3("hscan", "all results processed", results)
+     | Belt.Result.Ok((cursor, results)) => Js.log3("hscan", cursor, results)
+     | Belt.Result.Error(error) => Js.log2("hscan error", error)
      }
    );
 

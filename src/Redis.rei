@@ -122,3 +122,7 @@ let hincrby:
 let hmset:
   (~key: string, ~values: Js.Dict.t(string), t) =>
   Promise.t(Belt.Result.t(SimpleStringReply.t, Error.t));
+
+let hscan:
+  (~key: string, ~cursor: Cursor.t, ~match: string=?, ~count: int=?, t) =>
+  Promise.t(Belt.Result.t(ScanReply.t(Js.Dict.t(string)), Error.t));

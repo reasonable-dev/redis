@@ -108,6 +108,15 @@ module Internal = {
     );
   };
 
+  let rec listToPairs = (~results=[], values) => {
+    switch (values) {
+    | [key, value, ...rest] =>
+      listToPairs(~results=[(key, value), ...results], rest)
+    | [] => results
+    | _ => results
+    };
+  };
+
   [@bs.module] [@bs.new] external make: unit => client = "ioredis";
 
   [@bs.send] external quit: client => promise = "";
@@ -397,6 +406,30 @@ let hmset = (~key, ~values, client) => {
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(SimpleStringReply.decode(json))
      )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+let hscan = (~key, ~cursor, ~match=?, ~count=?, client) => {
+  let args =
+    [|key|]
+    |> Internal.argsWithCursor(cursor)
+    |> Internal.argsWithMatch(match)
+    |> Internal.argsWithCount(count);
+
+  Internal.hscan(client, args)
+  |> Repromise.Rejectable.map(json => {
+       let result =
+         Json.Decode.map(
+           ((cursor, keyValues)) =>
+             (cursor, Internal.listToPairs(keyValues) |> Js.Dict.fromList),
+           ScanReply.decode,
+           json,
+         );
+       Belt.Result.Ok(result);
+     })
   |> Repromise.Rejectable.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
