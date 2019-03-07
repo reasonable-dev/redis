@@ -45,7 +45,7 @@ client
    );
 
 client
-|> Redis.del(~keys=[|"foo"|])
+|> Redis.del(~keys=["foo"])
 |> Redis.Promise.wait(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
@@ -63,7 +63,7 @@ client
    );
 
 client
-|> Redis.del(~keys=[|"foo"|])
+|> Redis.del(~keys=["foo"])
 |> Redis.Promise.wait(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
@@ -96,7 +96,7 @@ client
    );
 
 client
-|> Redis.del(~keys=[|"foo"|])
+|> Redis.del(~keys=["foo"])
 |> Redis.Promise.wait(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)

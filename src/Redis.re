@@ -345,7 +345,9 @@ let get = (~key, client) => {
 };
 
 let del = (~keys, client) => {
-  Internal.del(client, keys)
+  let args = Belt.List.toArray(keys);
+
+  Internal.del(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )

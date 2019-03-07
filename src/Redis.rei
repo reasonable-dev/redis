@@ -105,7 +105,7 @@ let get:
   (~key: string, t) => Promise.t(Belt.Result.t(BulkStringReply.t, Error.t));
 
 let del:
-  (~keys: array(string), t) =>
+  (~keys: list(string), t) =>
   Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
 
 let exists:
