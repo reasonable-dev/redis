@@ -113,7 +113,7 @@ let exists:
 
 let scan:
   (~cursor: Cursor.t, ~match: string=?, ~count: int=?, t) =>
-  Promise.t(Belt.Result.t(ScanReply.t(array(string)), Error.t));
+  Promise.t(Belt.Result.t(ScanReply.t(list(string)), Error.t));
 
 let hincrby:
   (~key: string, ~field: string, ~value: int, t) =>

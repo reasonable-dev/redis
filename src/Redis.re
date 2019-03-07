@@ -281,7 +281,7 @@ module ScanReply = {
 
   let decode = json => {
     let (cursor, results) =
-      json |> Json.Decode.(pair(string, array(string)));
+      json |> Json.Decode.(pair(string, list(string)));
 
     if (cursor === "0") {
       (Cursor.LastCursor, results);
