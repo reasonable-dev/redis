@@ -126,3 +126,7 @@ let hmset:
 let hscan:
   (~key: string, ~cursor: Cursor.t, ~match: string=?, ~count: int=?, t) =>
   Promise.t(Belt.Result.t(ScanReply.t(Js.Dict.t(string)), Error.t));
+
+let sadd:
+  (~key: string, ~values: list(string), t) =>
+  Promise.t(Belt.Result.t(IntegerReply.t, Error.t));

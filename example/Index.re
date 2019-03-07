@@ -104,4 +104,22 @@ client
      }
    );
 
+client
+|> Redis.sadd(~key="foo", ~values=["one", "two", "three"])
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("sadd", value)
+     | Belt.Result.Error(error) => Js.log2("sadd error", error)
+     }
+   );
+
+client
+|> Redis.del(~keys=["foo"])
+|> Redis.Promise.wait(res =>
+     switch (res) {
+     | Belt.Result.Ok(value) => Js.log2("del", value)
+     | Belt.Result.Error(error) => Js.log2("del error", error)
+     }
+   );
+
 client |> Redis.quit;
