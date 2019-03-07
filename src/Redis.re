@@ -101,6 +101,13 @@ module Internal = {
     | None => args
     };
 
+  let argsWithDict = (value, args) => {
+    let pairs = Js.Dict.entries(value);
+    Belt.Array.reduce(pairs, args, (result, (key, value)) =>
+      Belt.Array.concat(result, [|key, value|])
+    );
+  };
+
   [@bs.module] [@bs.new] external make: unit => client = "ioredis";
 
   [@bs.send] external quit: client => promise = "";
@@ -112,8 +119,8 @@ module Internal = {
   [@bs.send] external scan: (client, array(string)) => promise = "";
 
   [@bs.send] external hincrby: (client, array(string)) => promise = "";
-  [@bs.send] external hscan: (client, string, int) => promise = "";
-  [@bs.send] external hmset: (client, string, Js.Json.t) => promise = "";
+  [@bs.send] external hmset: (client, array(string)) => promise = "";
+  [@bs.send] external hscan: (client, array(string)) => promise = "";
 
   [@bs.send] external sadd: (client, string, string) => promise = "";
   [@bs.send] external scard: (client, string) => promise = "";
@@ -374,6 +381,21 @@ let hincrby = (~key, ~field, ~value, client) => {
   Internal.hincrby(client, args)
   |> Repromise.Rejectable.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
+     )
+  |> Repromise.Rejectable.catch(error => {
+       let result = Belt.Result.Error(Error.classify(error));
+       Promise.resolved(result);
+     });
+};
+
+// TODO: I don't like the name `values` because it's actually key/value pairs
+// maybe should be ~dict?
+let hmset = (~key, ~values, client) => {
+  let args = [|key|] |> Internal.argsWithDict(values);
+
+  Internal.hmset(client, args)
+  |> Repromise.Rejectable.map(json =>
+       Belt.Result.Ok(SimpleStringReply.decode(json))
      )
   |> Repromise.Rejectable.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));

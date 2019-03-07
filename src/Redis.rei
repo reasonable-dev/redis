@@ -118,3 +118,7 @@ let scan:
 let hincrby:
   (~key: string, ~field: string, ~value: int, t) =>
   Promise.t(Belt.Result.t(IntegerReply.t, Error.t));
+
+let hmset:
+  (~key: string, ~values: Js.Dict.t(string), t) =>
+  Promise.t(Belt.Result.t(SimpleStringReply.t, Error.t));
