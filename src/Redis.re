@@ -438,10 +438,9 @@ let hscan = (~key, ~cursor, ~match=?, ~count=?, client) => {
      });
 };
 
-// TODO: `values` is actually called `members` in the Redis docs
-let sadd = (~key, ~values, client) => {
+let sadd = (~key, ~members, client) => {
   // TODO: should this be abstracted into an args normalize function?
-  let args = Belt.Array.concat([|key|], Belt.List.toArray(values));
+  let args = Belt.Array.concat([|key|], Belt.List.toArray(members));
 
   Internal.sadd(client, args)
   |> Repromise.Rejectable.map(json =>

@@ -105,7 +105,7 @@ client
    );
 
 client
-|> Redis.sadd(~key="foo", ~values=["one", "two", "three"])
+|> Redis.sadd(~key="foo", ~members=["one", "two", "three"])
 |> Redis.Promise.wait(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("sadd", value)
