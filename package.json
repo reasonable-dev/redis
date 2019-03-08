@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "BuckleScript bindings for Redis (specifically ioredis).",
   "main": "Redis.bs.js",
+  "files": [
+    "bsconfig.json",
+    "src/Redis.re",
+    "src/Redis.rei",
+    "LICENSE"
+  ],
   "dependencies": {
     "@aantron/repromise": "^0.6.0",
     "@glennsl/bs-json": "^3.0.0",
