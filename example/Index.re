@@ -1,8 +1,7 @@
 let client = Redis.make();
 
-client
-|> Redis.set(~key="foo", ~value="bar", ~existence=NX, ~expiration=EX(10))
-|> Redis.Promise.wait(res =>
+Redis.set(~key="foo", ~value="bar", ~existence=NX, ~expiration=EX(10), client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(Redis.SimpleStringReply.Ok) => Js.log2("set", "Ok")
      | Belt.Result.Ok(Redis.SimpleStringReply.Empty) =>
@@ -13,9 +12,8 @@ client
      }
    );
 
-client
-|> Redis.exists(~key="foo")
-|> Redis.Promise.wait(res =>
+Redis.exists(~key="foo", client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(true) => Js.log("exists")
      | Belt.Result.Ok(false) => Js.log("not exists")
@@ -23,9 +21,8 @@ client
      }
    );
 
-client
-|> Redis.get(~key="foo")
-|> Redis.Promise.wait(res =>
+Redis.get(~key="foo", client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(Some(value)) => Js.log2("get", value)
      | Belt.Result.Ok(None) => Js.log2("get", "No value")
@@ -33,9 +30,8 @@ client
      }
    );
 
-client
-|> Redis.scan(~cursor=Redis.Cursor.start, ~match="t*", ~count=1)
-|> Redis.Promise.wait(res =>
+Redis.scan(~cursor=Redis.Cursor.start, ~match="t*", ~count=1, client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok((cursor, results)) when Redis.Cursor.isLast(cursor) =>
        Js.log3("scan", "all results processed", results)
@@ -44,36 +40,32 @@ client
      }
    );
 
-client
-|> Redis.del(~keys=["foo"])
-|> Redis.Promise.wait(res =>
+Redis.del(~keys=["foo"], client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
      | Belt.Result.Error(error) => Js.log2("del error", error)
      }
    );
 
-client
-|> Redis.hincrby(~key="foo", ~field="bar", ~value=1)
-|> Redis.Promise.wait(res =>
+Redis.hincrby(~key="foo", ~field="bar", ~value=1, client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("hincrby", value)
      | Belt.Result.Error(error) => Js.log2("hincrby error", error)
      }
    );
 
-client
-|> Redis.del(~keys=["foo"])
-|> Redis.Promise.wait(res =>
+Redis.del(~keys=["foo"], client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
      | Belt.Result.Error(error) => Js.log2("del error", error)
      }
    );
 
-client
-|> Redis.hmset(~key="foo", ~values=Js.Dict.fromList([("bar", "baz")]))
-|> Redis.Promise.wait(res =>
+Redis.hmset(~key="foo", ~values=Js.Dict.fromList([("bar", "baz")]), client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(Redis.SimpleStringReply.Ok) => Js.log2("hmset", "Ok")
      | Belt.Result.Ok(Redis.SimpleStringReply.Empty) =>
@@ -84,9 +76,8 @@ client
      }
    );
 
-client
-|> Redis.hscan(~key="foo", ~cursor=Redis.Cursor.start)
-|> Redis.Promise.wait(res =>
+Redis.hscan(~key="foo", ~cursor=Redis.Cursor.start, client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok((cursor, results)) when Redis.Cursor.isLast(cursor) =>
        Js.log3("hscan", "all results processed", results)
@@ -95,45 +86,40 @@ client
      }
    );
 
-client
-|> Redis.del(~keys=["foo"])
-|> Redis.Promise.wait(res =>
+Redis.del(~keys=["foo"], client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
      | Belt.Result.Error(error) => Js.log2("del error", error)
      }
    );
 
-client
-|> Redis.sadd(~key="foo", ~members=["one", "two", "three"])
-|> Redis.Promise.wait(res =>
+Redis.sadd(~key="foo", ~members=["one", "two", "three"], client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("sadd", value)
      | Belt.Result.Error(error) => Js.log2("sadd error", error)
      }
    );
 
-client
-|> Redis.scard(~key="foo")
-|> Redis.Promise.wait(res =>
+Redis.scard(~key="foo", client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("scard", value)
      | Belt.Result.Error(error) => Js.log2("scard error", error)
      }
    );
 
-client
-|> Redis.sismember(~key="foo", ~member="one")
-|> Redis.Promise.wait(res =>
+Redis.sismember(~key="foo", ~member="one", client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("sismember", value)
      | Belt.Result.Error(error) => Js.log2("sismember error", error)
      }
    );
 
-client
-|> Redis.del(~keys=["foo"])
-|> Redis.Promise.wait(res =>
+Redis.del(~keys=["foo"], client)
+->Promise.get(res =>
      switch (res) {
      | Belt.Result.Ok(value) => Js.log2("del", value)
      | Belt.Result.Error(error) => Js.log2("del error", error)

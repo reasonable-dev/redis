@@ -60,7 +60,7 @@ module Internal = {
       commandGet(error)->Belt.Option.flatMap(Command.nameGet);
   };
 
-  type promise = Repromise.Rejectable.t(Js.Json.t, JsError.t);
+  type promise = Promise.Js.t(Js.Json.t, JsError.t);
 
   let argsWithExistence = (value, args) => {
     switch (value) {
@@ -235,10 +235,6 @@ module Error = {
   };
 };
 
-module Promise = {
-  include Repromise;
-};
-
 module SimpleStringReply = {
   type t =
     | Ok
@@ -308,10 +304,10 @@ let make = () => Internal.make();
 let quit = client => {
   // TODO: they claim this is always OK
   Internal.quit(client)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(SimpleStringReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -323,10 +319,10 @@ let set = (~key, ~value, ~expiration=?, ~existence=?, client) => {
     |> Internal.argsWithExpiration(expiration)
     |> Internal.argsWithExistence(existence);
   Internal.set(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(SimpleStringReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -335,10 +331,10 @@ let set = (~key, ~value, ~expiration=?, ~existence=?, client) => {
 let get = (~key, client) => {
   let args = [|key|];
   Internal.get(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(BulkStringReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -348,10 +344,10 @@ let del = (~keys, client) => {
   let args = Belt.List.toArray(keys);
 
   Internal.del(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -361,10 +357,10 @@ let del = (~keys, client) => {
 let exists = (~key, client) => {
   let args = [|key|];
   Internal.exists(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(BooleanReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -377,11 +373,11 @@ let scan = (~cursor, ~match=?, ~count=?, client) => {
     |> Internal.argsWithMatch(match)
     |> Internal.argsWithCount(count);
   Internal.scan(client, args)
-  |> Repromise.Rejectable.map(json => {
+  ->Promise.Js.map(json => {
        let result = ScanReply.decode(json);
        Belt.Result.Ok(result);
      })
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -390,10 +386,10 @@ let scan = (~cursor, ~match=?, ~count=?, client) => {
 let hincrby = (~key, ~field, ~value, client) => {
   let args = [|key, field, string_of_int(value)|];
   Internal.hincrby(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -405,10 +401,10 @@ let hmset = (~key, ~values, client) => {
   let args = [|key|] |> Internal.argsWithDict(values);
 
   Internal.hmset(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(SimpleStringReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -422,7 +418,7 @@ let hscan = (~key, ~cursor, ~match=?, ~count=?, client) => {
     |> Internal.argsWithCount(count);
 
   Internal.hscan(client, args)
-  |> Repromise.Rejectable.map(json => {
+  ->Promise.Js.map(json => {
        let result =
          Json.Decode.map(
            ((cursor, keyValues)) =>
@@ -432,7 +428,7 @@ let hscan = (~key, ~cursor, ~match=?, ~count=?, client) => {
          );
        Belt.Result.Ok(result);
      })
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -443,10 +439,10 @@ let sadd = (~key, ~members, client) => {
   let args = Belt.Array.concat([|key|], Belt.List.toArray(members));
 
   Internal.sadd(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -456,10 +452,10 @@ let scard = (~key, client) => {
   let args = [|key|];
 
   Internal.scard(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(IntegerReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
@@ -469,11 +465,22 @@ let sismember = (~key, ~member, client) => {
   let args = [|key, member|];
 
   Internal.sismember(client, args)
-  |> Repromise.Rejectable.map(json =>
+  ->Promise.Js.map(json =>
        Belt.Result.Ok(BooleanReply.decode(json))
      )
-  |> Repromise.Rejectable.catch(error => {
+  ->Promise.Js.catch(error => {
        let result = Belt.Result.Error(Error.classify(error));
        Promise.resolved(result);
      });
+};
+
+module Promise = {
+  type t('a) = Promise.t('a);
+  let make = Promise.pending;
+  let resolved = Promise.resolved;
+  let andThen = (f, p) => Promise.flatMap(p, f);
+  let map = (f, p) => Promise.map(p, f);
+  let wait = (f, p) => Promise.get(p, f);
+  let all = Promise.all;
+  let race = Promise.race;
 };
