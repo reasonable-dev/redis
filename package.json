@@ -10,7 +10,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@aantron/repromise": "^0.6.0",
+    "reason-promise": "^1.0.2",
     "@glennsl/bs-json": "^3.0.0",
     "ioredis": "^4.6.2"
   },

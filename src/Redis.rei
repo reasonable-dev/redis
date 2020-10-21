@@ -60,7 +60,7 @@ module Error: {
 };
 
 module Promise: {
-  type t('a);
+  type t('a) = Promise.t('a);
   let make: unit => (t('a), 'a => unit);
   let resolved: 'a => t('a);
   let andThen: ('a => t('b), t('a)) => t('b);
